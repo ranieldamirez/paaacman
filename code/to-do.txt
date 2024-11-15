@@ -11,5 +11,3 @@
 6) Add level re-starting once all the pellets are collecting
 
 7) Add lives functionality
-
-8) Fix Ghost movement (it's not smooth)

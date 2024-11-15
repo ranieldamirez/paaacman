@@ -24,28 +24,36 @@ class Enemy:
         self.rect = self.image.get_rect(center=(self.position[0] + maze.cell_size // 2, 
                                                  self.position[1] + maze.cell_size // 2))
         self.speed = 4  # Movement speed
+        self.current_direction = random.choice(["x", "y"])  # Initial movement direction
+        self.current_step = random.choice([-self.speed, self.speed])  # Step size in current direction
+        self.direction_timer = 60  # Frames to commit to a direction (adjust as needed)
+        self.timer_counter = 0
 
     def update(self, maze, player=None):
         """
         Update the enemy's position.
-        - Movement is random for now but avoids walls.
-        - Can be extended to chase the player.
+        - Commit to a direction for a fixed duration before changing.
+        - Avoid walls.
         """
-        # Random direction: horizontal or vertical
-        direction = random.choice(["x", "y"])
-        step = random.choice([-self.speed, self.speed])
-        
-        # Try moving in the chosen direction
-        if direction == "x":
-            self.rect.x += step
-            # Revert if colliding with a wall
+        if self.timer_counter >= self.direction_timer:
+            # Choose a new direction after the timer expires
+            self.current_direction = random.choice(["x", "y"])
+            self.current_step = random.choice([-self.speed, self.speed])
+            self.timer_counter = 0  # Reset timer
+
+        # Try moving in the committed direction
+        if self.current_direction == "x":
+            self.rect.x += self.current_step
             if self.check_wall_collision(maze):
-                self.rect.x -= step
-        elif direction == "y":
-            self.rect.y += step
-            # Revert if colliding with a wall
+                self.rect.x -= self.current_step
+                self.timer_counter = self.direction_timer  # Force direction change
+        elif self.current_direction == "y":
+            self.rect.y += self.current_step
             if self.check_wall_collision(maze):
-                self.rect.y -= step
+                self.rect.y -= self.current_step
+                self.timer_counter = self.direction_timer  # Force direction change
+
+        self.timer_counter += 1  # Increment timer counter
 
     def check_wall_collision(self, maze):
         """
