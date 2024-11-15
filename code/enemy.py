@@ -23,7 +23,7 @@ class Enemy:
         self.image.fill((255, 0, 0))  # Red color for enemy
         self.rect = self.image.get_rect(center=(self.position[0] + maze.cell_size // 2, 
                                                  self.position[1] + maze.cell_size // 2))
-        self.speed = 3  # Movement speed
+        self.speed = 4  # Movement speed
 
     def update(self, maze, player=None):
         """
