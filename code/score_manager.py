@@ -16,7 +16,7 @@ class ScoreManager():
         else:
             ScoreManager._instance = self # set singleton instance
         self.current_score = 0
-        self.load_high_scores = self.load_high_scores()
+        self.high_scores = self.load_high_scores()
 
     def add_score(self, points):
         self.current_score += points
@@ -62,7 +62,7 @@ class ScoreManager():
             writer.writerow(header)
             writer.writerows(scores)
 
-    def add_score(self, username, score, filename = "./resources/scores.csv"):
+    def record_score(self, username, score, filename = "./resources/scores.csv"):
         # Open the CSV file in append mode
         with open(filename, mode="a", newline = "") as file:
             writer = csv.writer(file)

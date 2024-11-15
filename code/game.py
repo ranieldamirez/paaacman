@@ -5,11 +5,13 @@ from enemy import Enemy
 from maze import Maze
 from score_manager import ScoreManager
 from game_event_manager import GameEventManager
+import math
 import sys
 
 pygame.init()
 # Screen configuration
 SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600 # screen dimensions
+cell_size = 25
 FPS = 60 # Frames per second
 
 # Colors
@@ -39,9 +41,10 @@ class GameEngine:
         self.clock = pygame.time.Clock()
 
         # Initializing game elements
-        self.player = Player()
-        self.ghosts = [Enemy() for _ in range(4)] # Instantiate 4 ghost enemies
-        self.map = Maze()
+        
+        self.map = Maze(SCREEN_WIDTH, SCREEN_HEIGHT, cell_size)
+        self.player = Player(cell_size, self.map)
+        self.ghosts = [Enemy(cell_size, self.map) for _ in range(4)] # Instantiate 4 ghost enemies
         self.score_manager = ScoreManager()
         self.event_manager = GameEventManager()
 
@@ -63,21 +66,20 @@ class GameEngine:
         self.screen.blit(paaacman_image, (image_x, image_y))
 
         # Display High Scores
-        high_scores = ScoreManager.getInstance().load_high_scores() # get high scores
+        high_scores = ScoreManager.getInstance().get_high_scores() # get high scores
         for i, (username, score) in enumerate(high_scores):
             score_text = text_font.render(f"{i + 1}. {username}: {score}", True, WHITE)
             self.screen.blit(score_text, (self.screen.get_width() // 3, (self.screen.get_height() // 2) + i * 40))
 
         # Display Credits
-        credits_text = small_text_font.render("Â© 2024 CPSC 6119 Team 4", True, WHITE)
-        self.screen.blit(credits_text, (SCREEN_WIDTH // 2 - credits_text.get_width() // 2))
-
+        credits_text = small_text_font.render("© 2024 CPSC 6119 Team 4", True, WHITE)
+        self.screen.blit(credits_text, (SCREEN_WIDTH // 2 - credits_text.get_width() // 2, SCREEN_HEIGHT - 50))
 
         # Waiting for player to press a key to start
         font = pygame.font.Font(None, 36) # set font size
         prompt = font.render("Press any key to start", True, WHITE)
-        self.screen.blit(prompt, (SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2)) # draw onto screen
-        pygame.display.flip() # update scrfeen contents
+        self.screen.blit(prompt, (SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2 - 50)) # draw onto screen
+        pygame.display.flip() # update screen contents
 
         # check if user pressed down on a key
         for event in pygame.event.get():
@@ -95,39 +97,78 @@ class GameEngine:
         self.screen.blit(message, (SCREEN_WIDTH // 3, SCREEN_HEIGHT // 3)) # draw onto screen
 
         pygame.display.flip()
-        pygame.time.wait(5000) # show 'game over' screen for 5 seconds
+        pygame.time.wait(3000) # show 'game over' screen for 5 seconds
         self.running = False # end game
 
     def main_game(self):
-        # Main game logic
-        self.map.draw(self.screen) # draw the maze layout
-        self.player.update() # update the movement of player
-        self.player.draw(self.screen) # draw updated player based on movement
 
+        # Clear the screen
+        self.screen.fill(BLACK)
+
+        # Draw the maze layout
+        self.map.draw(self.screen)
+
+        # Update and draw the player
+        self.player.update(self.map)
+        self.player.collect_pellet(self.map)
+        self.player.draw(self.screen)
+
+        # Update and draw the ghosts
         for ghost in self.ghosts:
-            ghost.update() # update movement
-            ghost.draw(self.screen) # draw updated ghost based on movement
-        
+            ghost.update(self.map, self.player)
+            ghost.draw(self.screen)
+
+        # Display the score
+        score_text = text_font.render(f"Score: {self.score_manager.getInstance().get_current_score()}", True, WHITE)
+        self.screen.blit(score_text, (10, 10))  # Top-left corner
+
+        # Check for game over conditions
+        if self.player.collides_with_ghost(self.ghosts):
+            self.state = "game_over"
+        elif self.map.all_pellets_collected():
+            self.state = "game_over"
+
+        # Update the display
         pygame.display.flip()
 
-        # Handle events
+        # Handle user input
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                self.running == False
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    self.state = "game_over"
+                self.running = False
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                self.state = "game_over"
 
     def run(self):
         while self.running:
+            # Clear events at the start of each frame
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+
+                # Handle global key press for quitting
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    self.running = False
+
+                # Pass event to the current state
+                if self.state == "start_menu":
+                    if event.type == pygame.KEYDOWN:
+                        self.state = "playing"
+
+                # If you pause while playing // **** add pausing functionality later ****  
+                elif self.state == "playing":
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                        self.state = "game_over"
+
+            # Render based on current state
             if self.state == "start_menu":
                 self.start_menu()
             elif self.state == "playing":
                 self.main_game()
             elif self.state == "game_over":
                 self.game_over_screen()
-            
-            self.clock.tick(FPS) # setting fps to 60
+
+            self.clock.tick(FPS)  # Limit the frame rate
+
         pygame.quit()
 
 if __name__ == "__main__":
