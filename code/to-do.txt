@@ -11,3 +11,5 @@
 6) Add level re-starting once all the pellets are collecting
 
 7) Add lives functionality
+
+8) Fix Player movement (when you hold a direction you go faster)

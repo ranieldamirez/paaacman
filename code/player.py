@@ -22,33 +22,48 @@ class Player:
         self.rect = self.image.get_rect(center=(self.position[0] + cell_size // 2, 
                                                  self.position[1] + cell_size // 2))
         self.speed = 5  # Movement speed
+        self.current_direction = None # Curent direction of movement
+        self.next_direction = None # Next direction pressed by player
 
 
     def update(self, maze):
         """
-        Update the player's position based on keyboard input and handle wall collisions.
+        Update the player's position based on the last direction and handle wall collisions.
         """
         keys = pygame.key.get_pressed()
         
-        # Movement in the X direction
+        # Update the next direction based on key press
         if keys[pygame.K_LEFT]:
-            self.rect.x -= self.speed
-            if self.check_wall_collision(maze):
-                self.rect.x += self.speed  # Undo movement if colliding with a wall
+            self.next_direction = (-self.speed, 0)  # Move left
         elif keys[pygame.K_RIGHT]:
-            self.rect.x += self.speed
-            if self.check_wall_collision(maze):
-                self.rect.x -= self.speed  # Undo movement if colliding with a wall
-        
-        # Movement in the Y direction
-        if keys[pygame.K_UP]:
-            self.rect.y -= self.speed
-            if self.check_wall_collision(maze):
-                self.rect.y += self.speed  # Undo movement if colliding with a wall
+            self.next_direction = (self.speed, 0)  # Move right
+        elif keys[pygame.K_UP]:
+            self.next_direction = (0, -self.speed)  # Move up
         elif keys[pygame.K_DOWN]:
-            self.rect.y += self.speed
+            self.next_direction = (0, self.speed)  # Move down
+
+        # Attempt to move in the next direction if it's set
+        if self.next_direction:
+            self.rect.x += self.next_direction[0]
+            self.rect.y += self.next_direction[1]
+
+            if not self.check_wall_collision(maze):
+                self.current_direction = self.next_direction  # Update the current direction
+                self.next_direction = None  # Clear the next direction
+            else:
+                # Revert the attempted move
+                self.rect.x -= self.next_direction[0]
+                self.rect.y -= self.next_direction[1]
+
+        # Continue moving in the current direction
+        if self.current_direction:
+            self.rect.x += self.current_direction[0]
+            self.rect.y += self.current_direction[1]
+
             if self.check_wall_collision(maze):
-                self.rect.y -= self.speed  # Undo movement if colliding with a wall
+                # Revert the movement if colliding with a wall
+                self.rect.x -= self.current_direction[0]
+                self.rect.y -= self.current_direction[1]
 
     def check_wall_collision(self, maze):
         """
