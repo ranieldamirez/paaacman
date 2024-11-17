@@ -17,14 +17,22 @@ class Player:
                     break
 
         self.position = list(start_position)  # Player's starting position
-        self.image = pygame.Surface((20, 20))  # Placeholder for player appearance
-        self.image.fill((255, 255, 0))  # Yellow color for Paac-Man
-        self.rect = self.image.get_rect(center=(self.position[0] + cell_size // 2, 
-                                                 self.position[1] + cell_size // 2))
-        self.speed = 5  # Movement speed
-        self.current_direction = None # Curent direction of movement
-        self.next_direction = None # Next direction pressed by player
+        self.cell_size = cell_size
+        self.speed = 2  # Movement speed
+        self.current_direction = None  # Current direction of movement
+        self.next_direction = None  # Next direction pressed by player
 
+        # Load the Paac-Man image
+        try:
+            self.image = pygame.image.load(r"C:\Users\shawn\OneDrive\Pictures\PAAC_MAN.png")
+            self.image = pygame.transform.scale(self.image, (20, 20))  # Scale the image to fit
+        except pygame.error:
+            print("Error loading Paac-Man image, defaulting to yellow color.")
+            self.image = pygame.Surface((20, 20))  # Fallback appearance
+            self.image.fill((255, 255, 0))  # Yellow color as fallback
+
+        self.rect = self.image.get_rect(center=(self.position[0] + self.cell_size // 2,
+                                                 self.position[1] + self.cell_size // 2))
 
     def update(self, maze):
         """
