@@ -10,9 +10,9 @@ import sys
 
 pygame.init()
 # Screen configuration
-SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600 # screen dimensions
+SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600  # screen dimensions
 cell_size = 25
-FPS = 60 # Frames per second
+FPS = 60  # Frames per second
 
 # Colors
 BLACK = (0, 0, 0)
@@ -28,7 +28,7 @@ small_text_font = pygame.font.Font(None, 28)
 
 # Load the PAAAC-MAN image
 try:
-    paaacman_image = pygame.image.load("./resources/PAAAC.jpg")
+    paaacman_image = pygame.image.load("C:/Users/shawn/OneDrive/Pictures/PAAAC.jpg")
     paaacman_image = pygame.transform.scale(paaacman_image, (100, 100))  # Adjust size as needed
 except pygame.error:
     print("ERROR: UNABLE TO LOAD THE IMAGE")
@@ -41,20 +41,19 @@ class GameEngine:
         self.clock = pygame.time.Clock()
 
         # Initializing game elements
-        
         self.map = Maze(SCREEN_WIDTH, SCREEN_HEIGHT, cell_size)
         self.player = Player(cell_size, self.map)
-        self.ghosts = [Enemy(cell_size, self.map) for _ in range(4)] # Instantiate 4 ghost enemies
+        self.ghosts = [Enemy(cell_size, self.map) for _ in range(4)]  # Instantiate 4 ghost enemies
         self.score_manager = ScoreManager()
         self.event_manager = GameEventManager()
 
         self.running = True
-        self.state = "start_menu" #initializing to start menu
+        self.state = "start_menu"  # Initializing to start menu
+        self.ghost_speed = 5  # Adjust the ghost speed to slow it down (higher value = slower)
 
-# start menu state
+    # Start menu state
     def start_menu(self):
-
-        # display start menu
+        # Display start menu
         self.screen.fill(BLACK)
         title_text = title_font.render("PAAC-MAN", True, YELLOW)
         title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 4))
@@ -66,7 +65,7 @@ class GameEngine:
         self.screen.blit(paaacman_image, (image_x, image_y))
 
         # Display High Scores
-        high_scores = ScoreManager.getInstance().get_high_scores() # get high scores
+        high_scores = ScoreManager.getInstance().get_high_scores()  # Get high scores
         for i, (username, score) in enumerate(high_scores):
             score_text = text_font.render(f"{i + 1}. {username}: {score}", True, WHITE)
             self.screen.blit(score_text, (self.screen.get_width() // 3, (self.screen.get_height() // 2) + i * 40))
@@ -76,32 +75,31 @@ class GameEngine:
         self.screen.blit(credits_text, (SCREEN_WIDTH // 2 - credits_text.get_width() // 2, SCREEN_HEIGHT - 50))
 
         # Waiting for player to press a key to start
-        font = pygame.font.Font(None, 36) # set font size
+        font = pygame.font.Font(None, 36)  # Set font size
         prompt = font.render("Press any key to start", True, WHITE)
-        self.screen.blit(prompt, (SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2 - 50)) # draw onto screen
-        pygame.display.flip() # update screen contents
+        self.screen.blit(prompt, (SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2 - 50))  # Draw onto screen
+        pygame.display.flip()  # Update screen contents
 
-        # check if user pressed down on a key
+        # Check if user pressed down on a key
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 self.state = "playing"
             elif event.type == pygame.QUIT:
                 self.running = False
 
-# game over state
+    # Game over state
     def game_over_screen(self):
-        # display 'game over' screen
-        self.screen.fill((0,0,0))
+        # Display 'game over' screen
+        self.screen.fill((0, 0, 0))
         font = pygame.font.Font(None, 74)
         message = font.render("Game Over", True, (255, 0, 0))
-        self.screen.blit(message, (SCREEN_WIDTH // 3, SCREEN_HEIGHT // 3)) # draw onto screen
+        self.screen.blit(message, (SCREEN_WIDTH // 3, SCREEN_HEIGHT // 3))  # Draw onto screen
 
         pygame.display.flip()
-        pygame.time.wait(3000) # show 'game over' screen for 5 seconds
-        self.running = False # end game
+        pygame.time.wait(3000)  # Show 'game over' screen for 5 seconds
+        self.running = False  # End game
 
     def main_game(self):
-
         # Clear the screen
         self.screen.fill(BLACK)
 
@@ -115,7 +113,8 @@ class GameEngine:
 
         # Update and draw the ghosts
         for ghost in self.ghosts:
-            ghost.update(self.map, self.player)
+            if pygame.time.get_ticks() % self.ghost_speed == 0:  # Slow down ghost updates
+                ghost.update(self.map, self.player)
             ghost.draw(self.screen)
 
         # Display the score
@@ -170,6 +169,7 @@ class GameEngine:
             self.clock.tick(FPS)  # Limit the frame rate
 
         pygame.quit()
+
 
 if __name__ == "__main__":
     game = GameEngine()
