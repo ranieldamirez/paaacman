@@ -30,15 +30,15 @@ class Enemy:
         # Load images for specific colors
         if self.color == (255, 0, 0):  # Red ghost
             try:
-                self.image = pygame.image.load(r"C:\Users\shawn\OneDrive\Pictures\Red.png")
+                self.image = pygame.image.load(r"./resources/yellow.png")
                 self.image = pygame.transform.scale(self.image, (20, 20))  # Scale the image to fit
             except pygame.error:
-                print("Error loading red ghost image, defaulting to color.")
+                print("Error loading yellow ghost image, defaulting to red color.")
                 self.image = pygame.Surface((20, 20))
                 self.image.fill(self.color)
         elif self.color == (0, 255, 0):  # Green ghost
             try:
-                self.image = pygame.image.load(r"C:\Users\shawn\OneDrive\Pictures\Green.png")
+                self.image = pygame.image.load(r"./resources/Green.png")
                 self.image = pygame.transform.scale(self.image, (20, 20))  # Scale the image to fit
             except pygame.error:
                 print("Error loading green ghost image, defaulting to color.")
@@ -46,7 +46,7 @@ class Enemy:
                 self.image.fill(self.color)
         elif self.color == (255, 192, 203):  # Pink ghost
             try:
-                self.image = pygame.image.load(r"C:\Users\shawn\OneDrive\Pictures\pink.png")
+                self.image = pygame.image.load(r"./resources/pink.png")
                 self.image = pygame.transform.scale(self.image, (20, 20))  # Scale the image to fit
             except pygame.error:
                 print("Error loading pink ghost image, defaulting to color.")
@@ -54,7 +54,7 @@ class Enemy:
                 self.image.fill(self.color)
         elif self.color == (0, 0, 255):  # Blue ghost
             try:
-                self.image = pygame.image.load(r"C:\Users\shawn\OneDrive\Pictures\Blue.png")
+                self.image = pygame.image.load(r"./resources/blue.png")
                 self.image = pygame.transform.scale(self.image, (20, 20))  # Scale the image to fit
             except pygame.error:
                 print("Error loading blue ghost image, defaulting to color.")

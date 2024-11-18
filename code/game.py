@@ -28,7 +28,7 @@ small_text_font = pygame.font.Font(None, 28)
 
 # Load the PAAAC-MAN image
 try:
-    paaacman_image = pygame.image.load("C:/Users/shawn/OneDrive/Pictures/PAAAC.jpg")
+    paaacman_image = pygame.image.load("./resources/PAAAC.jpg")
     paaacman_image = pygame.transform.scale(paaacman_image, (100, 100))  # Adjust size as needed
 except pygame.error:
     print("ERROR: UNABLE TO LOAD THE IMAGE")

@@ -24,7 +24,7 @@ class Player:
 
         # Load the Paac-Man image
         try:
-            self.image = pygame.image.load(r"C:\Users\shawn\OneDrive\Pictures\PAAC_MAN.png")
+            self.image = pygame.image.load(r"./resources/pacman.png")
             self.image = pygame.transform.scale(self.image, (20, 20))  # Scale the image to fit
         except pygame.error:
             print("Error loading Paac-Man image, defaulting to yellow color.")
