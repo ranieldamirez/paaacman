@@ -3,9 +3,12 @@ import pygame
 import random
 
 class Enemy:
+    colors = [(255, 0, 0), (255, 192, 203), (0, 255, 0), (0, 0, 255)]  # Red, Pink, Green, Blue
+    color_index = 0  # Tracks the next color to assign
+
     def __init__(self, cell_size, maze, position=None):
         """
-        Initialize the enemy with a valid starting position in a walkable cell.
+        Initialize the enemy with a valid starting position in a walkable cell and assign a unique color or image.
         """
         if position is None:
             # Find a random walkable cell in the maze
@@ -19,9 +22,50 @@ class Enemy:
             position = random.choice(walkable_cells)
 
         self.position = position
-        self.image = pygame.Surface((20, 20))  # Placeholder for enemy appearance
-        self.image.fill((255, 0, 0))  # Red color for enemy
-        self.rect = self.image.get_rect(center=(self.position[0] + maze.cell_size // 2, 
+
+        # Assign a unique color from the colors list
+        self.color = Enemy.colors[Enemy.color_index]
+        Enemy.color_index = (Enemy.color_index + 1) % len(Enemy.colors)  # Cycle through colors
+
+        # Load images for specific colors
+        if self.color == (255, 0, 0):  # Red ghost
+            try:
+                self.image = pygame.image.load(r"C:\Users\shawn\OneDrive\Pictures\Red.png")
+                self.image = pygame.transform.scale(self.image, (20, 20))  # Scale the image to fit
+            except pygame.error:
+                print("Error loading red ghost image, defaulting to color.")
+                self.image = pygame.Surface((20, 20))
+                self.image.fill(self.color)
+        elif self.color == (0, 255, 0):  # Green ghost
+            try:
+                self.image = pygame.image.load(r"C:\Users\shawn\OneDrive\Pictures\Green.png")
+                self.image = pygame.transform.scale(self.image, (20, 20))  # Scale the image to fit
+            except pygame.error:
+                print("Error loading green ghost image, defaulting to color.")
+                self.image = pygame.Surface((20, 20))
+                self.image.fill(self.color)
+        elif self.color == (255, 192, 203):  # Pink ghost
+            try:
+                self.image = pygame.image.load(r"C:\Users\shawn\OneDrive\Pictures\pink.png")
+                self.image = pygame.transform.scale(self.image, (20, 20))  # Scale the image to fit
+            except pygame.error:
+                print("Error loading pink ghost image, defaulting to color.")
+                self.image = pygame.Surface((20, 20))
+                self.image.fill(self.color)
+        elif self.color == (0, 0, 255):  # Blue ghost
+            try:
+                self.image = pygame.image.load(r"C:\Users\shawn\OneDrive\Pictures\Blue.png")
+                self.image = pygame.transform.scale(self.image, (20, 20))  # Scale the image to fit
+            except pygame.error:
+                print("Error loading blue ghost image, defaulting to color.")
+                self.image = pygame.Surface((20, 20))
+                self.image.fill(self.color)
+        else:
+            # Default appearance for other ghosts
+            self.image = pygame.Surface((20, 20))
+            self.image.fill(self.color)
+
+        self.rect = self.image.get_rect(center=(self.position[0] + maze.cell_size // 2,
                                                  self.position[1] + maze.cell_size // 2))
         self.speed = 4  # Movement speed
         self.current_direction = random.choice(["x", "y"])  # Initial movement direction
