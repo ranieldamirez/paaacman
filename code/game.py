@@ -49,7 +49,6 @@ class GameEngine:
 
         self.running = True
         self.state = "start_menu"  # Initializing to start menu
-        self.ghost_speed = 5  # Adjust the ghost speed to slow it down (higher value = slower)
 
     # Start menu state
     def start_menu(self):
@@ -125,7 +124,8 @@ class GameEngine:
 
         # Update and draw the ghosts
         for ghost in self.ghosts:
-            ghost.update(self.map, self.player, self.screen)  # Pass the screen to the ghost's update
+            ghost.update(self.map, self.player)  # Pass the screen to the ghost's update
+            ghost.draw(self.screen)
 
         # Display the score
         score_text = text_font.render(f"Score: {self.score_manager.getInstance().get_current_score()}", True, WHITE)
