@@ -23,9 +23,44 @@ class Enemy:
         self.color = Enemy.colors[Enemy.color_index]
         Enemy.color_index = (Enemy.color_index + 1) % len(Enemy.colors)
 
-        # Default appearance
-        self.image = pygame.Surface((cell_size, cell_size))
-        self.image.fill(self.color)
+        # Load images for specific colors
+        if self.color == (255, 0, 0):  # Red ghost
+            try:
+                self.image = pygame.image.load(r"./resources/yellow.png")
+                self.image = pygame.transform.scale(self.image, (cell_size, cell_size))  # Scale the image to fit
+            except pygame.error:
+                print("Error loading yellow ghost image, defaulting to red color.")
+                self.image = pygame.Surface((cell_size, cell_size))
+                self.image.fill(self.color)
+        elif self.color == (0, 255, 0):  # Green ghost
+            try:
+                self.image = pygame.image.load(r"./resources/Green.png")
+                self.image = pygame.transform.scale(self.image, (cell_size, cell_size))  # Scale the image to fit
+            except pygame.error:
+                print("Error loading green ghost image, defaulting to color.")
+                self.image = pygame.Surface((cell_size, cell_size))
+                self.image.fill(self.color)
+        elif self.color == (255, 192, 203):  # Pink ghost
+            try:
+                self.image = pygame.image.load(r"./resources/pink.png")
+                self.image = pygame.transform.scale(self.image, (cell_size, cell_size))  # Scale the image to fit
+            except pygame.error:
+                print("Error loading pink ghost image, defaulting to color.")
+                self.image = pygame.Surface((cell_size, cell_size))
+                self.image.fill(self.color)
+        elif self.color == (0, 0, 255):  # Blue ghost
+            try:
+                self.image = pygame.image.load(r"./resources/blue.png")
+                self.image = pygame.transform.scale(self.image, (cell_size, cell_size))  # Scale the image to fit
+            except pygame.error:
+                print("Error loading blue ghost image, defaulting to color.")
+                self.image = pygame.Surface((cell_size, cell_size))
+                self.image.fill(self.color)
+        else:
+            # Default appearance for other ghosts
+            self.image = pygame.Surface((cell_size, cell_size))
+            self.image.fill(self.color)
+
         self.rect = self.image.get_rect(center=(self.position[0] + maze.cell_size // 2,
                                                  self.position[1] + maze.cell_size // 2))
         self.speed = 3
