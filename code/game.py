@@ -5,7 +5,7 @@ from enemy import Enemy
 from maze import Maze
 from score_manager import ScoreManager
 from game_event_manager import GameEventManager
-import math
+from SuperPlayerDecorator import SuperPlayerDecorator
 import sys
 
 pygame.init()
@@ -96,33 +96,43 @@ class GameEngine:
         self.screen.blit(message, (SCREEN_WIDTH // 3, SCREEN_HEIGHT // 3))  # Draw onto screen
 
         pygame.display.flip()
-        pygame.time.wait(3000)  # Show 'game over' screen for 5 seconds
+        pygame.time.wait(1500)  # Show 'game over' screen for 1.5 seconds
         self.running = False  # End game
 
     def main_game(self):
+        """
+        Main game loop for handling gameplay.
+        """
         # Clear the screen
         self.screen.fill(BLACK)
 
         # Draw the maze layout
         self.map.draw(self.screen)
 
-        # Update and draw the player
-        self.player.update(self.map)
-        self.player.collect_pellet(self.map)
-        self.player.draw(self.screen)
+        # First, handle pellet collection
+        new_player = self.player.collect_pellet(self.map)
+
+        # If the player becomes a SuperPlayerDecorator, keep the decorator
+        if isinstance(new_player, SuperPlayerDecorator):
+            self.player = new_player
+        else:
+            self.player = self.player.update(self.map, self.ghosts)
+
+        # DEBUG
+        print(f"Player type: {type(self.player)}, Timer: {getattr(self.player, 'super_mode_timer', 'N/A')}")
+
+        self.player.draw(self.screen)  # Draw the player
 
         # Update and draw the ghosts
         for ghost in self.ghosts:
-            if pygame.time.get_ticks() % self.ghost_speed == 0:  # Slow down ghost updates
-                ghost.update(self.map, self.player)
-            ghost.draw(self.screen)
+            ghost.update(self.map, self.player, self.screen)  # Pass the screen to the ghost's update
 
         # Display the score
         score_text = text_font.render(f"Score: {self.score_manager.getInstance().get_current_score()}", True, WHITE)
         self.screen.blit(score_text, (10, 10))  # Top-left corner
 
         # Check for game over conditions
-        if self.player.collides_with_ghost(self.ghosts):
+        if isinstance(self.player, Player) and self.player.collides_with_ghost(self.ghosts):
             self.state = "game_over"
         elif self.map.all_pellets_collected():
             self.state = "game_over"
@@ -136,6 +146,8 @@ class GameEngine:
                 self.running = False
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 self.state = "game_over"
+
+
 
     def run(self):
         while self.running:
