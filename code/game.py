@@ -1,4 +1,3 @@
-# game.py
 import pygame
 from player import Player
 from enemy import Enemy
@@ -9,22 +8,20 @@ from SuperPlayerDecorator import SuperPlayerDecorator
 import sys
 
 pygame.init()
+
 # Screen configuration
-SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600  # screen dimensions
+SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
 cell_size = 25
-FPS = 60  # Frames per second
+FPS = 60
 
 # Colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
-RED = (255, 0, 0)
-BLUE = (0, 191, 255)
 
 # Fonts
 title_font = pygame.font.Font(None, 100)
 text_font = pygame.font.Font(None, 36)
-small_text_font = pygame.font.Font(None, 28)
 
 # Load the PAAAC-MAN image
 try:
@@ -34,102 +31,84 @@ except pygame.error:
     print("ERROR: UNABLE TO LOAD THE IMAGE")
     sys.exit()
 
+
 class GameEngine:
     def __init__(self):
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("PAAAC-MAN Arcade Game")
         self.clock = pygame.time.Clock()
 
-        # Initializing game elements
+        # Initialize game elements
         self.map = Maze(SCREEN_WIDTH, SCREEN_HEIGHT, cell_size)
         self.player = Player(cell_size, self.map)
-        self.ghosts = [Enemy(cell_size, self.map) for _ in range(4)]  # Instantiate 4 ghost enemies
+        self.ghosts = [Enemy(cell_size, self.map) for _ in range(4)]
         self.score_manager = ScoreManager()
         self.event_manager = GameEventManager()
 
         self.running = True
-        self.state = "start_menu"  # Initializing to start menu
+        self.state = "start_menu"  # Game starts at the menu
+        self.frame_count = 0  # Frame counter for timed events
 
-    # Start menu state
-    def start_menu(self):
-        # Display start menu
+        # Place 2 ghosts in jail
+        self.ghosts[2].remove(self.map)
+        self.ghosts[3].remove(self.map)
+
+    def start_menu(self, events):
+        """Render the start menu."""
         self.screen.fill(BLACK)
         title_text = title_font.render("PAAC-MAN", True, YELLOW)
-        title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 4))
+        title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4))
         self.screen.blit(title_text, title_rect)
 
-        # Display the paacman image next to title
-        image_x = title_rect.right + 20  # Position the image to the right of the title
-        image_y = title_rect.centery - paaacman_image.get_height() // 2
-        self.screen.blit(paaacman_image, (image_x, image_y))
+        # Display image next to the title
+        self.screen.blit(paaacman_image, (SCREEN_WIDTH // 2 - paaacman_image.get_width() // 2, SCREEN_HEIGHT // 2))
 
-        # Display High Scores
-        high_scores = ScoreManager.getInstance().get_high_scores()  # Get high scores
-        for i, (username, score) in enumerate(high_scores):
-            score_text = text_font.render(f"{i + 1}. {username}: {score}", True, WHITE)
-            self.screen.blit(score_text, (self.screen.get_width() // 3, (self.screen.get_height() // 2) + i * 40))
-
-        # Display Credits
-        credits_text = small_text_font.render("© 2024 CPSC 6119 Team 4", True, WHITE)
-        self.screen.blit(credits_text, (SCREEN_WIDTH // 2 - credits_text.get_width() // 2, SCREEN_HEIGHT - 50))
-
-        # Waiting for player to press a key to start
-        font = pygame.font.Font(None, 36)  # Set font size
-        prompt = font.render("Press any key to start", True, WHITE)
-        self.screen.blit(prompt, (SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2 - 50))  # Draw onto screen
-        pygame.display.flip()  # Update screen contents
-
-        # Check if user pressed down on a key
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                self.state = "playing"
-            elif event.type == pygame.QUIT:
-                self.running = False
-
-    # Game over state
-    def game_over_screen(self):
-        # Display 'game over' screen
-        self.screen.fill((0, 0, 0))
-        font = pygame.font.Font(None, 74)
-        message = font.render("Game Over", True, (255, 0, 0))
-        self.screen.blit(message, (SCREEN_WIDTH // 3, SCREEN_HEIGHT // 3))  # Draw onto screen
+        # Display start prompt
+        prompt = text_font.render("Press any key to start", True, WHITE)
+        self.screen.blit(prompt, (SCREEN_WIDTH // 3, SCREEN_HEIGHT - 100))
 
         pygame.display.flip()
-        pygame.time.wait(1500)  # Show 'game over' screen for 1.5 seconds
-        self.running = False  # End game
 
-    def main_game(self):
-        """
-        Main game loop for handling gameplay.
-        """
+        # Check events to transition to the game
+        for event in events:
+            if event.type == pygame.QUIT:
+                self.running = False
+            elif event.type == pygame.KEYDOWN:
+                self.state = "playing"
+
+    def main_game(self, events):
+        """Main game loop for handling gameplay."""
+        self.frame_count += 1  # Increment the frame count
+
+        
+
         # Clear the screen
         self.screen.fill(BLACK)
 
-        # Draw the maze layout
-        self.map.draw(self.screen)
-
-        # First, handle pellet collection
+        # Handle pellet collection
         new_player = self.player.collect_pellet(self.map)
-
-        # If the player becomes a SuperPlayerDecorator, keep the decorator
         if isinstance(new_player, SuperPlayerDecorator):
-            self.player = new_player
+            self.player = new_player  # Replace player if power-up is active
         else:
             self.player = self.player.update(self.map, self.ghosts)
 
-        # DEBUG
-        print(f"Player type: {type(self.player)}, Timer: {getattr(self.player, 'super_mode_timer', 'N/A')}")
+        # Draw maze, player, and ghosts
+        self.map.draw(self.screen)
+        self.player.draw(self.screen)
 
-        self.player.draw(self.screen)  # Draw the player
+        # Manage ghost spawning
+        print(self.frame_count)
 
-        # Update and draw the ghosts
         for ghost in self.ghosts:
-            ghost.update(self.map, self.player)  # Pass the screen to the ghost's update
+            ghost.update(self.map, self.player)
             ghost.draw(self.screen)
 
         # Display the score
         score_text = text_font.render(f"Score: {self.score_manager.getInstance().get_current_score()}", True, WHITE)
-        self.screen.blit(score_text, (10, 10))  # Top-left corner
+        self.screen.blit(score_text, (10, 10))
+
+        # Update the display
+        pygame.display.flip()
 
         # Check for game over conditions
         if isinstance(self.player, Player) and self.player.collides_with_ghost(self.ghosts):
@@ -137,44 +116,43 @@ class GameEngine:
         elif self.map.all_pellets_collected():
             self.state = "game_over"
 
-        # Update the display
+    def game_over_screen(self):
+        """Render the game over screen."""
+        self.screen.fill(BLACK)
+        game_over_text = title_font.render("Game Over", True, YELLOW)
+        game_over_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4))
+        self.screen.blit(game_over_text, game_over_rect)
+
+        # Display restart or exit prompt
+        prompt = text_font.render("Press any key to restart or ESC to exit", True, WHITE)
+        prompt_rect = prompt.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        self.screen.blit(prompt, prompt_rect)
+
         pygame.display.flip()
 
-        # Handle user input
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                self.state = "game_over"
-
-
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.running = False
+                else:
+                    self.state = "start_menu"
 
     def run(self):
+        """Run the game loop."""
         while self.running:
-            # Clear events at the start of each frame
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
+            events = pygame.event.get()  # Get all events at the start of the frame
 
-                # Handle global key press for quitting
+            # Handle quitting the game with ESC globally
+            for event in events:
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     self.running = False
 
-                # Pass event to the current state
-                if self.state == "start_menu":
-                    if event.type == pygame.KEYDOWN:
-                        self.state = "playing"
-
-                # If you pause while playing // **** add pausing functionality later ****  
-                elif self.state == "playing":
-                    if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                        self.state = "game_over"
-
-            # Render based on current state
             if self.state == "start_menu":
-                self.start_menu()
+                self.start_menu(events)
             elif self.state == "playing":
-                self.main_game()
+                self.main_game(events)
             elif self.state == "game_over":
                 self.game_over_screen()
 
