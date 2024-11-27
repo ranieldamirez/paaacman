@@ -76,11 +76,39 @@ class GameEngine:
             elif event.type == pygame.KEYDOWN:
                 self.state = "playing"
 
+    def pause_menu(self, events):
+        """Render the pause menu."""
+        self.screen.fill(BLACK)
+        pause_text = title_font.render("Paused", True, YELLOW)
+        pause_rect = pause_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4))
+        self.screen.blit(pause_text, pause_rect)
+
+        # Display options to resume or quit
+        resume_prompt = text_font.render("Press R to Resume", True, WHITE)
+        quit_prompt = text_font.render("Press Q to Quit", True, WHITE)
+        self.screen.blit(resume_prompt, (SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2))
+        self.screen.blit(quit_prompt, (SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2 + 50))
+
+        pygame.display.flip()
+
+        # Handle pause menu input
+        for event in events:
+            if event.type == pygame.QUIT:
+                self.running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r: # Resume game
+                    self.state = "playing"
+                elif event.key == pygame.K_q: # Quit game
+                    self.running = False
+
     def main_game(self, events):
         """Main game loop for handling gameplay."""
         self.frame_count += 1  # Increment the frame count
 
-        
+        # Press 'ESC' to pause
+        for event in events:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                self.state = "paused"
 
         # Clear the screen
         self.screen.fill(BLACK)
@@ -144,15 +172,12 @@ class GameEngine:
         while self.running:
             events = pygame.event.get()  # Get all events at the start of the frame
 
-            # Handle quitting the game with ESC globally
-            for event in events:
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                    self.running = False
-
             if self.state == "start_menu":
                 self.start_menu(events)
             elif self.state == "playing":
                 self.main_game(events)
+            elif self.state == "paused":
+                self.pause_menu(events)
             elif self.state == "game_over":
                 self.game_over_screen()
 

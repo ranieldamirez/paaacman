@@ -155,14 +155,10 @@ class Enemy:
     def check_jail_collision(self):
         col = self.rect.centerx // self.cell_size
         row = self.rect.centery // self.cell_size
-        print(f"Checking jail collision at row={row}, col={col}")
 
         if 0 <= row < len(self.maze.layout) and 0 <= col < len(self.maze.layout[row]):
             is_valid = self.maze.layout[row][col] == 3
-            print(f"Valid '3' cell: {is_valid}")
             return is_valid
-
-        print("Out of bounds!")
         return False
 
 

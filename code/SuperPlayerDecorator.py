@@ -20,6 +20,12 @@ class SuperPlayerDecorator:
         self.player.speed = 4  # Enhanced speed for super mode
         self.player.image.fill((255, 255, 0))  # Change color to yellow (for super mode)
 
+        # Before updating, ensure the player is aligned with the grid
+        if not self.player.is_close_to_grid():
+            print("Warning: Player misaligned with grid during super mode.")
+            self.player.rect.x = (self.player.rect.x // maze.cell_size) * maze.cell_size
+            self.player.rect.y = (self.player.rect.y // maze.cell_size) * maze.cell_size
+            
         self.player.update(maze, ghosts)  # Delegate update to the player
 
         # Handle ghost interactions
