@@ -3,8 +3,8 @@ from player import Player
 from enemy import Enemy
 from maze import Maze
 from score_manager import ScoreManager
-from game_event_manager import GameEventManager
 from SuperPlayerDecorator import SuperPlayerDecorator
+from MovementStrategy import *
 import sys
 
 pygame.init()
@@ -41,9 +41,8 @@ class GameEngine:
         # Initialize game elements
         self.map = Maze(SCREEN_WIDTH, SCREEN_HEIGHT, cell_size)
         self.player = Player(cell_size, self.map)
-        self.ghosts = [Enemy(cell_size, self.map) for _ in range(4)]
+        self.ghosts = [Enemy(cell_size, self.map, strategy = ChaseMovement()) for _ in range(4)]
         self.score_manager = ScoreManager()
-        self.event_manager = GameEventManager()
         self.game_over_timer = None
 
         self.running = True

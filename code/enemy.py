@@ -5,7 +5,7 @@ class Enemy:
     colors = [(255, 0, 0), (255, 192, 203), (0, 255, 0), (0, 0, 255)]  # Red, Pink, Green, Blue
     color_index = 0  # Tracks the next color to assign
 
-    def __init__(self, cell_size, maze, position=None):
+    def __init__(self, cell_size, maze, position=None, strategy=None):
         if position is None:
             # Find a random walkable cell in the maze
             walkable_cells = [(col_idx * maze.cell_size, row_idx * maze.cell_size)
@@ -18,6 +18,9 @@ class Enemy:
         self.in_jail = False
         self.jail_timer = 0  # Timer for tracking jail duration (in frames)
         self.maze = maze
+        
+        # Movement Strategy
+        self.strategy = strategy if strategy else RandomMovement()
 
         # Assign a unique color from the colors list
         self.color = Enemy.colors[Enemy.color_index]
@@ -73,30 +76,7 @@ class Enemy:
         if self.in_jail:
             self.handle_jail(maze)
         else:
-            self.move_normal(maze)
-
-    def move_normal(self, maze):
-        """
-        Normal movement for ghosts outside the jail.
-        Ghosts avoid '3' cells unless they are in jail.
-        """
-        self.timer_counter += 1
-        if self.timer_counter >= self.direction_timer:
-            # Change direction after the timer expires
-            self.current_direction = random.choice(["x", "y"])
-            self.current_step = random.choice([-self.speed, self.speed])
-            self.timer_counter = 0
-
-        if self.current_direction == "x":
-            self.rect.x += self.current_step
-            if self.check_wall_or_restricted_cell(maze):
-                self.rect.x -= self.current_step
-                self.timer_counter = self.direction_timer  # Force direction change
-        elif self.current_direction == "y":
-            self.rect.y += self.current_step
-            if self.check_wall_or_restricted_cell(maze):
-                self.rect.y -= self.current_step
-                self.timer_counter = self.direction_timer  # Force direction change
+            self.strategy.move(self, maze, player) # Move using movement strategy
 
     def check_wall_or_restricted_cell(self, maze):
         """
