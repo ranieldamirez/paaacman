@@ -1,57 +1,43 @@
 import pygame
+from observer_pattern import Subject
 
-class SuperPlayerDecorator:
+class SuperPlayerDecorator(Subject):
     def __init__(self, player):
-        """
-        Decorate the player to enhance behavior after eating a super-pellet.
-        """
-        self.originalPlayer = player  # Keep track of the original player
+        super().__init__()
+        self.originalPlayer = player  # Reference to the original player
         self.player = player
-        self.super_mode_timer = 300  # Super mode duration (e.g., 300 frames)
+        self.super_mode_timer = 300  # Duration of super mode (e.g., 300 frames)
 
     def __getattr__(self, name):
-        """
-        Delegate access to attributes and methods to the wrapped Player instance.
-        """
         return getattr(self.player, name)
 
     def update(self, maze, ghosts):
-        self.super_mode_timer -= 1  # Countdown timer for super mode
+        self.super_mode_timer -= 1
 
         # Temporarily increase speed
-        if not hasattr(self.player, "_original_speed"):  # Save the original speed only once
+        if not hasattr(self.player, "_original_speed"):
             self.player._original_speed = self.player.speed
-        self.player.speed = 5  # Enhanced speed for super mode
+        self.player.speed = 5
 
-        # Delegate normal update logic to the original player
+        # Delegate update logic to the wrapped player
         self.player.update(maze, ghosts)
 
-        # Handle ghost interactions (e.g., send ghosts to jail)
+        # Handle ghost collisions
         for ghost in ghosts:
             if self.player.rect.colliderect(ghost.rect):
-                ghost.remove(maze)  # Place the ghost in jail
-                print("Ghost eaten!")  # Debug info
+                self.notify_observers("ghost_eaten", {"ghost": ghost})
+                ghost.remove(maze)
 
-        # Revert to the original player if the timer expires
+        # Revert to the original player if timer expires
         if self.super_mode_timer <= 0:
-            # Restore player state and remove decorator
             self.player.speed = self.player._original_speed  # Restore original speed
-            del self.player._original_speed  # Clean up temporary attribute
-            self.player.image = pygame.image.load(r"./resources/pacman.png")
-            self.player.image = pygame.transform.scale(self.player.image, (self.player.cell_size, self.player.cell_size))  # Reset image size
-            print("Super mode ended, reverting to normal player.")  # Debug info
-            return self.originalPlayer  # Return to the original player state
+            del self.player._original_speed  # Clean up attribute
+            return self.originalPlayer
 
-        return self  # Keep the decorator active while in super mode
+        return self
 
     def collect_pellet(self, maze):
-        """
-        Delegate pellet collection to the wrapped player.
-        """
         return self.player.collect_pellet(maze)
 
     def draw(self, screen):
-        """
-        Draw the player (unchanged).
-        """
         screen.blit(self.player.image, self.player.rect)
