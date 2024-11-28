@@ -44,6 +44,7 @@ class GameEngine:
         self.ghosts = [Enemy(cell_size, self.map) for _ in range(4)]
         self.score_manager = ScoreManager()
         self.event_manager = GameEventManager()
+        self.game_over_timer = None
 
         self.running = True
         self.state = "start_menu"  # Game starts at the menu
@@ -115,17 +116,19 @@ class GameEngine:
 
         # Handle pellet collection
         new_player = self.player.collect_pellet(self.map)
+
         if isinstance(new_player, SuperPlayerDecorator):
+            print('DEBUG: INSTANCE IS SUPER')
             self.player = new_player  # Replace player if power-up is active
-        else:
-            self.player = self.player.update(self.map, self.ghosts)
+
+        # Update the player (either Player or SuperPlayerDecorator)
+        updated_player = self.player.update(self.map, self.ghosts)
+        if updated_player != self.player:  # Check if the player has reverted
+            self.player = updated_player  # Replace the player instance
 
         # Draw maze, player, and ghosts
         self.map.draw(self.screen)
         self.player.draw(self.screen)
-
-        # Manage ghost spawning
-        print(self.frame_count)
 
         for ghost in self.ghosts:
             ghost.update(self.map, self.player)
@@ -145,27 +148,29 @@ class GameEngine:
             self.state = "game_over"
 
     def game_over_screen(self):
-        """Render the game over screen."""
+        """Render the game over screen and exit the game after 3 seconds."""
         self.screen.fill(BLACK)
         game_over_text = title_font.render("Game Over", True, YELLOW)
         game_over_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4))
         self.screen.blit(game_over_text, game_over_rect)
 
-        # Display restart or exit prompt
-        prompt = text_font.render("Press any key to restart or ESC to exit", True, WHITE)
+        # Display exit prompt
+        prompt = text_font.render("Exiting game in 3 seconds...", True, WHITE)
         prompt_rect = prompt.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
         self.screen.blit(prompt, prompt_rect)
 
         pygame.display.flip()
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    self.running = False
-                else:
-                    self.state = "start_menu"
+        # Start the timer and check if 3 seconds have passed
+        current_time = pygame.time.get_ticks()
+        if self.game_over_timer is None:
+            self.game_over_timer = current_time  # Initialize the timer
+
+        if current_time - self.game_over_timer >= 3000:  # 3000ms = 3 seconds
+            pygame.quit()  # Quit pygame
+            sys.exit()  # Exit the program
+
+
 
     def run(self):
         """Run the game loop."""

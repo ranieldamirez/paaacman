@@ -17,35 +17,32 @@ class SuperPlayerDecorator:
 
     def update(self, maze, ghosts):
         self.super_mode_timer -= 1  # Countdown timer for super mode
-        self.player.speed = 4  # Enhanced speed for super mode
-        self.player.image.fill((255, 255, 0))  # Change color to yellow (for super mode)
 
-        # Before updating, ensure the player is aligned with the grid
-        if not self.player.is_close_to_grid():
-            print("Warning: Player misaligned with grid during super mode.")
-            self.player.rect.x = (self.player.rect.x // maze.cell_size) * maze.cell_size
-            self.player.rect.y = (self.player.rect.y // maze.cell_size) * maze.cell_size
-            
-        self.player.update(maze, ghosts)  # Delegate update to the player
+        # Temporarily increase speed
+        if not hasattr(self.player, "_original_speed"):  # Save the original speed only once
+            self.player._original_speed = self.player.speed
+        self.player.speed = 5  # Enhanced speed for super mode
 
-        # Handle ghost interactions
+        # Delegate normal update logic to the original player
+        self.player.update(maze, ghosts)
+
+        # Handle ghost interactions (e.g., send ghosts to jail)
         for ghost in ghosts:
             if self.player.rect.colliderect(ghost.rect):
-                # Place the ghost in jail
-                ghost.remove(maze)  # Pass the maze to the `remove()` method
+                ghost.remove(maze)  # Place the ghost in jail
                 print("Ghost eaten!")  # Debug info
 
         # Revert to the original player if the timer expires
         if self.super_mode_timer <= 0:
-            print("Super mode ended, reverting to normal player.")  # Debug info
+            # Restore player state and remove decorator
+            self.player.speed = self.player._original_speed  # Restore original speed
+            del self.player._original_speed  # Clean up temporary attribute
             self.player.image = pygame.image.load(r"./resources/pacman.png")
             self.player.image = pygame.transform.scale(self.player.image, (self.player.cell_size, self.player.cell_size))  # Reset image size
+            print("Super mode ended, reverting to normal player.")  # Debug info
             return self.originalPlayer  # Return to the original player state
 
         return self  # Keep the decorator active while in super mode
-
-
-
 
     def collect_pellet(self, maze):
         """

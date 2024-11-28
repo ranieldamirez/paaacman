@@ -19,7 +19,7 @@ class Player:
 
         self.position = list(start_position)  # Player's starting position
         self.cell_size = cell_size
-        self.speed = 3  # Movement speed
+        self.speed = 5  # Movement speed
         self.current_direction = None  # Current direction of movement
         self.next_direction = None  # Next direction pressed by player
 
@@ -77,14 +77,9 @@ class Player:
                 if maze.layout[row_idx][col_idx] != 3:  # Check if not restricted (cell 3)
                     if not self.check_wall_collision(maze, proposed_rect):
                         self.rect = proposed_rect  # Move the player
-                    else:
-                        self.current_direction = None  # Stop movement if blocked
-                else:
-                    # Prevent movement if trying to enter the ghost jail
-                    self.current_direction = None  # Stop movement
+
         return self
 
-        
     def is_close_to_grid(self, threshold=5):
         """
         Check if the player is close enough to the center of the current grid cell.
