@@ -72,13 +72,14 @@ class Player(Subject):
     def collides_with_ghost(self, ghosts):
         """
         Check if the player collides with any ghosts.
-        :param ghosts: List of Enemy instances.
-        :return: True if the player collides with a ghost, otherwise False.
         """
         for ghost in ghosts:
             if self.rect.colliderect(ghost.rect):
-                return True  # Collision detected with a ghost
+                # Notify observers about the collision
+                self.notify_observers("player_collided_with_ghost", {"player": self, "ghost": ghost})
+                return True  # Collision detected
         return False  # No collision with ghosts
+
 
 
     def collect_pellet(self, maze):

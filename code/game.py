@@ -36,6 +36,9 @@ class GameEngine:
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("PAAAC-MAN Arcade Game")
         self.clock = pygame.time.Clock()
+        self.lives_display = pygame.Surface((30,30))
+        self.lives_display.fill((255, 255, 0))
+
 
         # Initialize game elements
         self.map = Maze(SCREEN_WIDTH, SCREEN_HEIGHT, cell_size)
@@ -102,7 +105,16 @@ class GameEngine:
                     self.state = "playing"
                 elif event.key == pygame.K_q:
                     self.running = False
+    def reset_player_and_ghosts(self):
+        self.player.rect.topleft = (self.map.cell_size, self.map.cell_size)  # Reset player position
+        self.ghosts[1].remove(self.map)  # Send ghosts back to jail
+        self.ghosts[0].remove(self.map)
+        print("Player and ghosts reset after losing a life.")
 
+    def draw_lives(self):
+        """Draw lives on screen."""
+        for i in range(self.event_manager.player_lives):
+            self.screen.blit(self.lives_display, (10 + i * 35, SCREEN_HEIGHT - 40))
     def main_game(self, events):
         """Main game loop."""
         self.frame_count += 1
@@ -133,17 +145,22 @@ class GameEngine:
             ghost.update(self.map, self.player)
             ghost.draw(self.screen)
 
+        # Game over conditions
+        if isinstance(self.player, Player) and self.player.collides_with_ghost(self.ghosts):
+            return
+        elif self.map.all_pellets_collected():
+            self.state = "game_over"
+
+        self.draw_lives()
+
         # Display score
         score_text = text_font.render(f"Score: {self.score_manager.get_current_score()}", True, WHITE)
         self.screen.blit(score_text, (10, 10))
 
         pygame.display.flip()
 
-        # Game over conditions
-        if isinstance(self.player, Player) and self.player.collides_with_ghost(self.ghosts):
-            self.state = "game_over"
-        elif self.map.all_pellets_collected():
-            self.state = "game_over"
+        
+        
 
     def game_over_screen(self):
         """Render game over screen."""
