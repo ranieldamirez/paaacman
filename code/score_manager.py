@@ -23,9 +23,6 @@ class ScoreManager:
     def add_score(self, points):
         self.current_score += points
 
-    def reset_score(self):
-        self.current_score = 0
-
     def get_current_score(self):
         return self.current_score
 
@@ -75,8 +72,3 @@ class ScoreManager:
             print("Invalid username or score. Score not recorded.")
             return
         self.update_high_scores(username, score)
-
-    def print_high_scores(self):
-        print("High Scores:")
-        for i, (username, score) in enumerate(self.high_scores, 1):
-            print(f"{i}. {username}: {score}")

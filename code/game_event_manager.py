@@ -48,25 +48,22 @@ class GameEventManager(Observer):
     def handle_player_collision(self, data):
         """Handle collision between the player and a ghost."""
         self.player_lives -= 1
-        print(f"Player collided with ghost! Lives remaining: {self.player_lives}")
         
         if self.player_lives > 0:
             self.game_engine.reset_player_and_ghosts()  # Reset player position
         else:
             self.game_engine.state = "game_over"
-            print("Game over! No lives remaining.")
+
 
     def handle_ghost_eaten(self, data):
         """Update score for eating a ghost."""
         self.game_engine.score_manager.add_score(200)
-        print("Ghost eaten!")
 
     def update_super_mode(self):
         """Decrement the super mode timer."""
         if self.super_mode_timer > 0:
             self.super_mode_timer -= 1
             if self.super_mode_timer == 0:
-                print("Super mode ended!")
 
                 # Reset all ghosts to their original appearance
                 for ghost in self.game_engine.ghosts:

@@ -70,14 +70,6 @@ class GameEngine:
         title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4))
         self.screen.blit(title_text, title_rect)
 
-        # Display high scores
-        high_scores = ScoreManager.getInstance().get_high_scores()
-        y_offset = SCREEN_HEIGHT // 2
-        for i, (username, score) in enumerate(high_scores):
-            score_text = text_font.render(f"{i + 1}. {username}: {score}", True, WHITE)
-            self.screen.blit(score_text, (SCREEN_WIDTH // 4, y_offset + i * 30))
-
-
         # Display image
         self.screen.blit(paaacman_image, (SCREEN_WIDTH // 2 - paaacman_image.get_width() // 2, SCREEN_HEIGHT // 2))
 
@@ -158,7 +150,6 @@ class GameEngine:
         self.player.rect.topleft = (self.map.cell_size, self.map.cell_size)  # Reset player position
         self.ghosts[1].remove(self.map)  # Send ghosts back to jail
         self.ghosts[0].remove(self.map)
-        print("Player and ghosts reset after losing a life.")
 
     def draw_lives(self):
         """Draw remaining lives on the screen using the Pac-Man image."""
@@ -183,8 +174,11 @@ class GameEngine:
         for event in events:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 self.state = "paused"
+            """"    
+            DEBUG TO COLLECT ALL PELLETS WITH 'P'
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_p: #DEBUG
                 self.player.collect_all_pellets(self.map)
+            """
 
         self.screen.fill(BLACK)
 
@@ -222,8 +216,10 @@ class GameEngine:
         pygame.display.flip()       
 
     def game_over_screen(self):
-        """Game over screen with username input."""
-        while self.state == "game_over":
+        """Game over screen with username input and high scores."""
+        input_complete = False
+
+        while self.state == "game_over" and not input_complete:
             # Clear the screen
             self.screen.fill(BLACK)
 
@@ -241,22 +237,19 @@ class GameEngine:
             username_rect = username_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
             self.screen.blit(username_text, username_rect)
 
-            # Update the display to show changes
             pygame.display.flip()
 
-            # Event loop to handle input
+            # Handle events for name input
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
                     pygame.quit()
-                    sys.exit()
+                    return
                 elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RETURN:  # Enter key submits the username
-                        if self.username.strip():
-                            # Save the score with the entered username
-                            ScoreManager.getInstance().record_score(self.username, ScoreManager.getInstance().get_current_score())
-                            pygame.quit()
-                            sys.exit()
+                    if event.key == pygame.K_RETURN and self.username.strip():  # Enter key submits the username
+                        # Save the score with the entered username
+                        ScoreManager.getInstance().record_score(self.username, ScoreManager.getInstance().get_current_score())
+                        input_complete = True
                     elif event.key == pygame.K_BACKSPACE:  # Backspace deletes characters
                         self.username = self.username[:-1]
                     else:
@@ -265,6 +258,43 @@ class GameEngine:
                             if len(self.username) < 10:
                                 self.username += event.unicode
 
+        # Display high scores after username input
+        self.display_high_scores()
+
+    def display_high_scores(self):
+        """Display high scores until the user presses any button."""
+        while True:
+            # Clear the screen
+            self.screen.fill(BLACK)
+
+            # Display high scores title
+            high_scores_title = title_font.render("High Scores", True, YELLOW)
+            title_rect = high_scores_title.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 6))
+            self.screen.blit(high_scores_title, title_rect)
+
+            # Fetch and display high scores
+            high_scores = ScoreManager.getInstance().get_high_scores()
+            y_offset = SCREEN_HEIGHT // 3
+            for i, (username, score) in enumerate(high_scores):
+                score_text = text_font.render(f"{i + 1}. {username}: {score}", True, WHITE)
+                self.screen.blit(score_text, (SCREEN_WIDTH // 4, y_offset + i * 30))
+
+            # Display exit prompt
+            exit_prompt = text_font.render("Press any key to exit", True, WHITE)
+            self.screen.blit(exit_prompt, (SCREEN_WIDTH // 3, SCREEN_HEIGHT - 100))
+
+            pygame.display.flip()
+
+            # Handle events to close the game
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                    pygame.quit()
+                    return
+                elif event.type == pygame.KEYDOWN:
+                    pygame.quit()
+                    sys.exit()
+                    return
     def run(self):
         """Run the game loop."""
         while self.running:
