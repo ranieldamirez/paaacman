@@ -50,6 +50,7 @@ class GameEventManager(Observer):
         self.player_lives -= 1
         
         if self.player_lives > 0:
+            self.game_engine.state = "life_lost"
             self.game_engine.reset_player_and_ghosts()  # Reset player position
         else:
             self.game_engine.state = "game_over"

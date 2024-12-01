@@ -108,6 +108,25 @@ class GameEngine:
                 elif event.key == pygame.K_q:
                     self.running = False
 
+    def life_lost_screen(self):
+        """Display 'Life Lost!' screen for 2 seconds."""
+        buffer_timer = 0
+        while buffer_timer < FPS * 2:  # 2-second buffer
+            self.screen.fill(BLACK)
+            title_font = pygame.font.Font(None, 35)
+
+            # Display 'Life Lost!' message
+            life_lost_text = title_font.render("Life Lost! Sending random ghost to jail and respawning..", True, (255, 0, 0))
+            text_rect = life_lost_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+            self.screen.blit(life_lost_text, text_rect)
+
+            pygame.display.flip()
+            self.clock.tick(FPS)
+            buffer_timer += 1
+
+        # Resume gameplay after showing the screen
+        self.state = "playing"
+
     def level_complete_screen(self):
         """Show the 'Level Complete' transition screen."""
         buffer_timer = 0
@@ -148,8 +167,10 @@ class GameEngine:
 
     def reset_player_and_ghosts(self):
         self.player.rect.topleft = (self.map.cell_size, self.map.cell_size)  # Reset player position
-        self.ghosts[1].remove(self.map)  # Send ghosts back to jail
-        self.ghosts[0].remove(self.map)
+        for ghost in self.ghosts:
+            if not ghost.in_jail:
+                ghost.remove(self.map)
+                break
 
     def draw_lives(self):
         """Draw remaining lives on the screen using the Pac-Man image."""
@@ -305,6 +326,8 @@ class GameEngine:
                 self.main_game(events)
             elif self.state == "paused":
                 self.pause_menu(events)
+            elif self.state == "life_lost":
+                self.life_lost_screen()
             elif self.state == "level_complete":
                 self.level_complete_screen()
                 self.add_new_ghost()
