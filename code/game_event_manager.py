@@ -39,7 +39,7 @@ class GameEventManager(Observer):
         """Activate super mode and update score."""
         self.game_engine.score_manager.add_score(50)
         self.super_mode_timer = 300  # 300 frames of super mode
-        print("Super mode activated!")
+        
         # Change ghosts to look scared
         for ghost in self.game_engine.ghosts:
             ghost.set_scared()

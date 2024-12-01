@@ -18,7 +18,8 @@ class Enemy(Subject):
         self.maze = maze
         self.in_jail = False
         self.jail_timer = 0
-        self.release_delay = random.randint(60, 180)
+        self.release_delay = 0
+        self.start_delay_applied = False
 
         # Initialize movement attributes
         self.timer_counter = 0  # Counts frames to control movement direction change
@@ -45,12 +46,29 @@ class Enemy(Subject):
 
     def update(self, maze, player=None):
         if self.in_jail:
+            if not self.start_delay_applied:
+                # Apply a random release delay once the game has started
+                self.release_delay = random.randint(60, 180)  # 1-3 seconds at 60 FPS
+                self.start_delay_applied = True
+
             if self.release_delay > 0:
                 self.release_delay -= 1
-                return  # Stay in jail until release delay expires
-            self.handle_jail(maze)
+                self.handle_jail(maze)  # Move within jail during delay
+                return
+            else:
+                # Only release if at the jail exit (e.g., '4' cell)
+                if self.is_at_jail_exit(maze):
+                    self.in_jail = False  # Exit jail
+                else:
+                    self.handle_jail(maze)  # Move toward the exit
         else:
             self.strategy.move(self, maze, player)
+
+    def is_at_jail_exit(self, maze):
+        """Check if the ghost is at the designated jail exit."""
+        col = self.rect.centerx // self.cell_size
+        row = self.rect.centery // self.cell_size
+        return maze.layout[row][col] == 4  # '4' marks the jail exit
 
     def set_strategy(self, strategy):
         """Chance the movement strategy of the ghost."""
