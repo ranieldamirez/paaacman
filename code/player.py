@@ -97,6 +97,12 @@ class Player(Subject):
                 return self
         return self
 
+    def snap_to_grid(self, maze):
+        """Align the character's position to the grid."""
+        self.rect.x = (self.rect.x // maze.cell_size) * maze.cell_size
+        self.rect.y = (self.rect.y // maze.cell_size) * maze.cell_size
+
+
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 

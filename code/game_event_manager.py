@@ -1,4 +1,5 @@
 from observer_pattern import Observer
+from MovementStrategy import *
 
 class GameEventManager(Observer):
     def __init__(self, game_engine):
@@ -32,6 +33,7 @@ class GameEventManager(Observer):
         # Change ghosts to look scared
         for ghost in self.game_engine.ghosts:
             ghost.set_scared()
+            ghost.set_strategy(ScaredMovement()) # Change to scared movements
 
     def handle_player_collision(self, data):
         """Handle collision between the player and a ghost."""
@@ -59,3 +61,4 @@ class GameEventManager(Observer):
                 # Reset all ghosts to their original appearance
                 for ghost in self.game_engine.ghosts:
                     ghost.reset_appearance()
+                    ghost.set_strategy(ChaseMovement())

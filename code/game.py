@@ -5,7 +5,7 @@ from maze import Maze
 from score_manager import ScoreManager
 from game_event_manager import GameEventManager
 from SuperPlayerDecorator import SuperPlayerDecorator
-from MovementStrategy import RandomMovement, ChaseMovement
+from MovementStrategy import ScaredMovement, ChaseMovement
 import sys
 
 # Screen configuration
@@ -114,6 +114,7 @@ class GameEngine:
                     self.state = "playing"
                 elif event.key == pygame.K_q:
                     self.running = False
+                    
     def reset_player_and_ghosts(self):
         self.player.rect.topleft = (self.map.cell_size, self.map.cell_size)  # Reset player position
         self.ghosts[1].remove(self.map)  # Send ghosts back to jail

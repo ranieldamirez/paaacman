@@ -1,4 +1,3 @@
-import pygame
 from observer_pattern import Subject
 
 class SuperPlayerDecorator(Subject):
@@ -17,7 +16,8 @@ class SuperPlayerDecorator(Subject):
         # Temporarily increase speed
         if not hasattr(self.player, "_original_speed"):
             self.player._original_speed = self.player.speed
-        self.player.speed = 5
+        #self.player.speed = 8
+        #self.player.snap_to_grid(maze)
 
         # Delegate update logic to the wrapped player
         self.player.update(maze, ghosts)

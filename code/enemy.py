@@ -1,6 +1,7 @@
 import pygame
 import random
 from observer_pattern import Subject
+from MovementStrategy import *
 
 class Enemy(Subject):
     colors = [(255, 0, 0), (255, 192, 203), (0, 255, 0), (0, 0, 255)]  # Red, Pink, Green, Blue
@@ -46,6 +47,10 @@ class Enemy(Subject):
             self.handle_jail(maze)
         else:
             self.strategy.move(self, maze, player)
+
+    def set_strategy(self, strategy):
+        """Chance the movement strategy of the ghost."""
+        self.strategy = strategy
 
     def handle_jail(self, maze):
         """Movement restricted to jail cells and handling release after timer."""
