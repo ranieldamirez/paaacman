@@ -69,6 +69,18 @@ class Player(Subject):
 
         return self
 
+    def collect_all_pellets(self, maze):
+        """Collect all pellets instantly."""
+        while maze.pellets:
+            pellet = maze.pellets.pop()
+            col_idx = (pellet[0] - maze.cell_size // 2) // maze.cell_size
+            row_idx = (pellet[1] - maze.cell_size // 2) // maze.cell_size
+
+            if maze.layout[row_idx][col_idx] == 2:  # Super-pellet
+                self.notify_observers("super_pellet_collected", {"player": self, "pellet_position": pellet})
+            else:
+                self.notify_observers("pellet_collected", {"player": self, "pellet_position": pellet})
+
     def collides_with_ghost(self, ghosts):
         """
         Check if the player collides with any ghosts.

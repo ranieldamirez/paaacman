@@ -6,6 +6,8 @@ class GameEventManager(Observer):
         self.game_engine = game_engine  # Reference to the GameEngine
         self.super_mode_timer = 0  # Frames left for super mode
         self.player_lives = 3 # Player has 3 lives
+        self.current_level = 1  # Start at level 1
+        self.max_level = 10  # Maximum number of levels
 
     def update(self, event_type, data):
         """React to game events."""
@@ -22,8 +24,16 @@ class GameEventManager(Observer):
         """Update score and check for level completion."""
         self.game_engine.score_manager.add_score(10)
         if self.game_engine.map.all_pellets_collected():
-            print("Level complete!")
-            self.game_engine.state = "game_over"
+            if self.current_level < self.max_level:
+                self.current_level += 1
+                self.game_engine.state = "level_complete"
+            else:
+                self.game_engine.state = "game_over"
+    
+    def draw_level_display(self, screen, font):
+        """Draw the current level on the GUI."""
+        level_text = font.render(f"Level: {self.current_level}", True, (255, 255, 255))
+        screen.blit(level_text, (800 - 150, 10))
         
     def handle_super_pellet_collected(self, data):
         """Activate super mode and update score."""

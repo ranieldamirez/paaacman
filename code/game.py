@@ -7,6 +7,7 @@ from game_event_manager import GameEventManager
 from SuperPlayerDecorator import SuperPlayerDecorator
 from MovementStrategy import ScaredMovement, ChaseMovement
 import sys
+import random
 
 # Screen configuration
 SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
@@ -114,7 +115,45 @@ class GameEngine:
                     self.state = "playing"
                 elif event.key == pygame.K_q:
                     self.running = False
-                    
+
+    def level_complete_screen(self):
+        """Show the 'Level Complete' transition screen."""
+        buffer_timer = 0
+        while buffer_timer < FPS * 3:  # 3-second buffer
+            self.screen.fill(BLACK)
+            title_font = pygame.font.Font(None, 80)
+            text_font = pygame.font.Font(None, 36)
+
+            # Display level complete message
+            level_complete_text = title_font.render("Level Completed!", True, (255, 255, 0))
+            next_level_text = text_font.render(f"Next level will have {len(self.ghosts) + 1} ghosts!", True, (255, 255, 255))
+
+            self.screen.blit(level_complete_text, (SCREEN_WIDTH // 4, SCREEN_HEIGHT // 3))
+            self.screen.blit(next_level_text, (SCREEN_WIDTH // 4, SCREEN_HEIGHT // 2))
+            pygame.display.flip()
+
+            self.clock.tick(FPS)
+            buffer_timer += 1
+
+    def add_new_ghost(self):
+        """Add a new ghost for the next level."""
+        ghost_image_index = random.randint(0,3)  # Cycle through ghost_0.png to ghost_3.png
+        new_ghost = Enemy(self.map.cell_size, self.map, strategy=ChaseMovement())
+        try:
+            new_ghost.image = pygame.image.load(f"./resources/ghost_{ghost_image_index}.png")
+            new_ghost.image = pygame.transform.scale(new_ghost.image, (self.map.cell_size, self.map.cell_size))
+        except pygame.error:
+            print(f"Warning: Could not load ghost image ghost_{ghost_image_index}.png")
+        self.ghosts.append(new_ghost)
+
+    def reset_level(self):
+        """Reset the level by regenerating pellets and resetting positions."""
+        self.map.generate_maze()  # Reset pellets
+        self.player.rect.topleft = (self.map.cell_size, self.map.cell_size)  # Reset player position
+        for ghost in self.ghosts:
+            ghost.remove(self.map)  # Reset ghosts to jail
+        self.state = "playing"
+
     def reset_player_and_ghosts(self):
         self.player.rect.topleft = (self.map.cell_size, self.map.cell_size)  # Reset player position
         self.ghosts[1].remove(self.map)  # Send ghosts back to jail
@@ -144,6 +183,8 @@ class GameEngine:
         for event in events:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 self.state = "paused"
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_p: #DEBUG
+                self.player.collect_all_pellets(self.map)
 
         self.screen.fill(BLACK)
 
@@ -170,19 +211,15 @@ class GameEngine:
         # Game over conditions
         if isinstance(self.player, Player) and self.player.collides_with_ghost(self.ghosts):
             return
-        elif self.map.all_pellets_collected():
-            self.state = "game_over"
 
         self.draw_lives()
+        self.event_manager.draw_level_display(self.screen, text_font)
 
         # Display score
         score_text = text_font.render(f"Score: {self.score_manager.get_current_score()}", True, WHITE)
         self.screen.blit(score_text, (10, 10))
 
-        pygame.display.flip()
-
-        
-        
+        pygame.display.flip()       
 
     def game_over_screen(self):
         """Game over screen with username input."""
@@ -238,6 +275,10 @@ class GameEngine:
                 self.main_game(events)
             elif self.state == "paused":
                 self.pause_menu(events)
+            elif self.state == "level_complete":
+                self.level_complete_screen()
+                self.add_new_ghost()
+                self.reset_level()
             elif self.state == "game_over":
                 self.game_over_screen()
 

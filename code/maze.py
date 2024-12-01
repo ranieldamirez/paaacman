@@ -45,6 +45,8 @@ class Maze:
         """
         Generate walls and pellets based on the layout.
         """
+        self.pellets.clear()
+        self.walls.clear()
         for row_idx, row in enumerate(self.layout):
             for col_idx, cell in enumerate(row):
                 x = col_idx * self.cell_size
