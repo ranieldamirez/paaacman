@@ -38,6 +38,7 @@ class GameEngine:
         self.clock = pygame.time.Clock()
         self.lives_display = pygame.Surface((30,30))
         self.lives_display.fill((255, 255, 0))
+        self.username = ""
 
 
         # Initialize game elements
@@ -67,6 +68,14 @@ class GameEngine:
         title_text = title_font.render("PAAAC-MAN", True, YELLOW)
         title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4))
         self.screen.blit(title_text, title_rect)
+
+        # Display high scores
+        high_scores = ScoreManager.getInstance().get_high_scores()
+        y_offset = SCREEN_HEIGHT // 2
+        for i, (username, score) in enumerate(high_scores):
+            score_text = text_font.render(f"{i + 1}. {username}: {score}", True, WHITE)
+            self.screen.blit(score_text, (SCREEN_WIDTH // 4, y_offset + i * 30))
+
 
         # Display image
         self.screen.blit(paaacman_image, (SCREEN_WIDTH // 2 - paaacman_image.get_width() // 2, SCREEN_HEIGHT // 2))
@@ -112,9 +121,21 @@ class GameEngine:
         print("Player and ghosts reset after losing a life.")
 
     def draw_lives(self):
-        """Draw lives on screen."""
-        for i in range(self.event_manager.player_lives):
-            self.screen.blit(self.lives_display, (10 + i * 35, SCREEN_HEIGHT - 40))
+        """Draw remaining lives on the screen using the Pac-Man image."""
+        try:
+            pacman_image = pygame.image.load(r"./resources/pacman.png")
+            pacman_image = pygame.transform.scale(pacman_image, (30, 30))  # Resize to fit as life icons
+
+            for i in range(self.event_manager.player_lives):
+                x = 10 + i * 40  # Space out the icons
+                y = SCREEN_HEIGHT - 50  # Position near the bottom of the screen
+                self.screen.blit(pacman_image, (x, y))
+        except pygame.error:
+            print("Error loading Pac-Man image for lives. Defaulting to text display.")
+            # Fallback to drawing yellow rectangles if image loading fails
+            for i in range(self.event_manager.player_lives):
+                pygame.draw.rect(self.screen, (255, 255, 0), (10 + i * 40, SCREEN_HEIGHT, 30, 30))
+    
     def main_game(self, events):
         """Main game loop."""
         self.frame_count += 1
@@ -163,25 +184,48 @@ class GameEngine:
         
 
     def game_over_screen(self):
-        """Render game over screen."""
-        self.screen.fill(BLACK)
-        game_over_text = title_font.render("Game Over", True, YELLOW)
-        game_over_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4))
-        self.screen.blit(game_over_text, game_over_rect)
+        """Game over screen with username input."""
+        while self.state == "game_over":
+            # Clear the screen
+            self.screen.fill(BLACK)
 
-        prompt = text_font.render("Exiting game in 3 seconds...", True, WHITE)
-        prompt_rect = prompt.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-        self.screen.blit(prompt, prompt_rect)
+            # Display "Game Over" message
+            game_over_text = title_font.render("Game Over", True, YELLOW)
+            game_over_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4))
+            self.screen.blit(game_over_text, game_over_rect)
 
-        pygame.display.flip()
+            # Display input prompt and entered username
+            prompt = text_font.render("Enter your name:", True, WHITE)
+            prompt_rect = prompt.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 50))
+            self.screen.blit(prompt, prompt_rect)
 
-        current_time = pygame.time.get_ticks()
-        if self.game_over_timer is None:
-            self.game_over_timer = current_time
+            username_text = text_font.render(self.username, True, WHITE)
+            username_rect = username_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+            self.screen.blit(username_text, username_rect)
 
-        if current_time - self.game_over_timer >= 3000:
-            pygame.quit()
-            sys.exit()
+            # Update the display to show changes
+            pygame.display.flip()
+
+            # Event loop to handle input
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RETURN:  # Enter key submits the username
+                        if self.username.strip():
+                            # Save the score with the entered username
+                            ScoreManager.getInstance().record_score(self.username, ScoreManager.getInstance().get_current_score())
+                            pygame.quit()
+                            sys.exit()
+                    elif event.key == pygame.K_BACKSPACE:  # Backspace deletes characters
+                        self.username = self.username[:-1]
+                    else:
+                        # Allow letters, numbers, and spaces (limit username length to 10)
+                        if event.unicode.isalnum() or event.unicode == ' ':
+                            if len(self.username) < 10:
+                                self.username += event.unicode
 
     def run(self):
         """Run the game loop."""

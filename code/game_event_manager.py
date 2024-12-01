@@ -23,6 +23,12 @@ class GameEventManager(Observer):
         if self.game_engine.map.all_pellets_collected():
             print("Level complete!")
             self.game_engine.state = "game_over"
+            
+    def handle_super_pellet_collected(self, data):
+        """Activate super mode and update score."""
+        self.game_engine.score_manager.add_score(50)
+        self.super_mode_timer = 300  # 300 frames of super mode
+        print("Super mode activated!")
 
     def handle_player_collision(self, data):
         """Handle collision between the player and a ghost."""
