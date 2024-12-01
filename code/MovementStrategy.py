@@ -177,41 +177,41 @@ class ChaseMovement(MovementStrategy):
             self.target_cell = None if not self.path else self.path.pop(0)
 
     def _calculate_path(self, ghost, player, maze):
-        """A* algorithm to find the shortest path to the player."""
+        """A* algorithm to find the shortest path to the player with random deviations."""
         start = (ghost.rect.centerx // maze.cell_size, ghost.rect.centery // maze.cell_size)
         goal = (player.rect.centerx // maze.cell_size, player.rect.centery // maze.cell_size)
+
+        # Add random deviations to the goal to introduce unpredictability
+        random_offset = random.choice([-1, 0, 1])  # Deviate target by -1, 0, or 1 cell
+        goal = (goal[0] + random_offset, goal[1] + random_offset)
 
         # Priority queue for A*
         open_set = []
         heapq.heappush(open_set, (0, start))  # (priority, cell)
 
-        came_from = {}  # Track the best path
-        g_score = {start: 0}  # Cost from start to the current cell
-        f_score = {start: self._heuristic(start, goal)}  # Estimated cost from start to goal
+        came_from = {}
+        g_score = {start: 0}
+        f_score = {start: self._heuristic(start, goal)}
 
         while open_set:
             _, current = heapq.heappop(open_set)
 
-            # If we reach the goal, reconstruct the path
             if current == goal:
                 return self._reconstruct_path(came_from, current, maze.cell_size)
 
-            # Explore neighbors
             for neighbor in self._get_neighbors(current, maze):
-                tentative_g_score = g_score[current] + 1  # Distance is always 1 in a grid
+                tentative_g_score = g_score[current] + 1
 
                 if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
-                    # This path is better
                     came_from[neighbor] = current
                     g_score[neighbor] = tentative_g_score
                     f_score[neighbor] = g_score[neighbor] + self._heuristic(neighbor, goal)
                     heapq.heappush(open_set, (f_score[neighbor], neighbor))
 
-        # If no path is found, return an empty list
         return []
 
     def _heuristic(self, cell, goal):
-        """Heuristic function for A* (Manhattan distance)."""
+        """Heuristic function for A* (Manhattan distance with randomness)."""
         return abs(cell[0] - goal[0]) + abs(cell[1] - goal[1])
 
     def _get_neighbors(self, cell, maze):

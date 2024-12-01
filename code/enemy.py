@@ -18,6 +18,7 @@ class Enemy(Subject):
         self.maze = maze
         self.in_jail = False
         self.jail_timer = 0
+        self.release_delay = random.randint(60, 180)
 
         # Initialize movement attributes
         self.timer_counter = 0  # Counts frames to control movement direction change
@@ -44,6 +45,9 @@ class Enemy(Subject):
 
     def update(self, maze, player=None):
         if self.in_jail:
+            if self.release_delay > 0:
+                self.release_delay -= 1
+                return  # Stay in jail until release delay expires
             self.handle_jail(maze)
         else:
             self.strategy.move(self, maze, player)
