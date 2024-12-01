@@ -120,5 +120,30 @@ class Enemy(Subject):
                     self.rect.topleft = (col_idx * self.cell_size, row_idx * self.cell_size)
                     return
 
+    def set_scared(self):
+        """Change the ghost's appearance to the scared look."""
+        try:
+            self.image = pygame.image.load(r"./resources/scared_ghost.png")
+            self.image = pygame.transform.scale(self.image, (self.cell_size, self.cell_size))
+        except pygame.error:
+            print("Error loading scared ghost image. Retaining current appearance.")
+
+    def reset_appearance(self):
+        """Reset the ghost's appearance to its original look."""
+        # Reload the image based on the assigned color
+        try:
+            if self.color == (255, 0, 0):  # Red ghost
+                self.image = pygame.image.load(r"./resources/ghost_0.png")
+            elif self.color == (0, 255, 0):  # Green ghost
+                self.image = pygame.image.load(r"./resources/ghost_1.png")
+            elif self.color == (255, 192, 203):  # Pink ghost
+                self.image = pygame.image.load(r"./resources/ghost_2.png")
+            elif self.color == (0, 0, 255):  # Blue ghost
+                self.image = pygame.image.load(r"./resources/ghost_3.png")
+            self.image = pygame.transform.scale(self.image, (self.cell_size, self.cell_size))
+        except pygame.error:
+            print("Error resetting ghost appearance. Retaining current look.")
+
+
     def draw(self, screen):
         screen.blit(self.image, self.rect)
