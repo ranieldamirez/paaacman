@@ -70,7 +70,7 @@ This project is a Pac-Man-inspired arcade game where the player controls a chara
    ```bash
    git clone <https://github.com/ranieldamirez/pacccman.git>
    ```
-3. Navigate to the project folder and start the game:
+3. Navigate to the project > 'code' folder and start the game:
    ```bash
    python game.py
    ```
