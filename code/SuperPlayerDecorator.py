@@ -1,3 +1,4 @@
+# DECORATOR DESIGN PATTERN
 from observer_pattern import Subject
 
 class SuperPlayerDecorator(Subject):

@@ -1,3 +1,4 @@
+# OBSERVER PATTERN IMPLEMENTATION
 class Observer:
     def update(self, event_type, data):
         """

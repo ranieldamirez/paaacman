@@ -1,3 +1,4 @@
+# OBSERVER PATTERN IMPLEMENTATION
 from observer_pattern import Observer
 from MovementStrategy import *
 
